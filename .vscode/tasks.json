@@ -10,7 +10,7 @@
                 "-std=c++17",
                 "${file}",
                 "-o",
-                "${workspaceFolder}/build/Debug/${fileBasenameNoExtension}"
+                "${workspaceFolder}/2048"
             ],
             "group": {
                 "kind": "build",
