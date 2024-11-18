@@ -1,21 +1,26 @@
 #include <iostream>
+#include <vector>
 #include <cstdlib>
 #include <ctime>
-#include <iomanip>
+#include <algorithm>
 
 const int GRID_SIZE = 4;
 
 // Function prototypes
-void initializeGrid(int grid[GRID_SIZE][GRID_SIZE]);
-void displayGrid(int grid[GRID_SIZE][GRID_SIZE]);
-void addRandomTile(int grid[GRID_SIZE][GRID_SIZE]);
-bool isGameOver(int grid[GRID_SIZE][GRID_SIZE]);
+void initializeGrid(std::vector<std::vector<int>>& grid);
+void displayGrid(const std::vector<std::vector<int>>& grid);
+void addRandomTile(std::vector<std::vector<int>>& grid);
+bool isGameOver(const std::vector<std::vector<int>>& grid);
+bool moveLeft(std::vector<std::vector<int>>& grid);
+bool moveRight(std::vector<std::vector<int>>& grid);
+bool moveUp(std::vector<std::vector<int>>& grid);
+bool moveDown(std::vector<std::vector<int>>& grid);
 
 int main() {
-    int grid[GRID_SIZE][GRID_SIZE] = {0}; // 4x4 grid initialized to 0
+    std::vector<std::vector<int>> grid(GRID_SIZE, std::vector<int>(GRID_SIZE, 0));
     char input;
 
-    std::srand(std::time(0)); // Seed random number generator
+    std::srand(std::time(0));
     initializeGrid(grid);
 
     while (true) {
@@ -29,82 +34,173 @@ int main() {
         std::cout << "Enter move (W: Up, A: Left, S: Down, D: Right): ";
         std::cin >> input;
 
-        // TODO: Handle moves based on input
-        // Implement functions to handle moves: moveUp(), moveLeft(), moveDown(), moveRight()
+        bool validMove = false;
 
-        // Add a new random tile after a valid move
-        addRandomTile(grid);
+        switch (input) {
+            case 'W': case 'w': validMove = moveUp(grid); break;
+            case 'A': case 'a': validMove = moveLeft(grid); break;
+            case 'S': case 's': validMove = moveDown(grid); break;
+            case 'D': case 'd': validMove = moveRight(grid); break;
+            default: std::cout << "Invalid input. Use W, A, S, D." << std::endl;
+        }
+
+        if (validMove) {
+            addRandomTile(grid);
+            addRandomTile(grid);
+        }
     }
 
     return 0;
 }
 
 // Initialize the grid with two random tiles
-void initializeGrid(int grid[GRID_SIZE][GRID_SIZE]) {
+void initializeGrid(std::vector<std::vector<int>>& grid) {
     addRandomTile(grid);
     addRandomTile(grid);
 }
 
-// Display the grid neatly
-void displayGrid(int grid[GRID_SIZE][GRID_SIZE]) {
-    std::cout << "+---------------------+" << std::endl;
-    for (int i = 0; i < GRID_SIZE; ++i) {
-        for (int j = 0; j < GRID_SIZE; ++j) {
-            std::cout << "| " << std::setw(4);
-            if (grid[i][j] != 0)
-                std::cout << grid[i][j];
-            else
-                std::cout << " ";
+// Display the grid
+void displayGrid(const std::vector<std::vector<int>>& grid) {
+    const std::string horizontalBorder = "+----+----+----+----+";
+
+    std::cout << horizontalBorder << std::endl;
+    for (const auto& row : grid) {
+        for (int cell : row) {
+            if (cell == 0) {
+                std::cout << "|    "; // Empty cell
+            } else {
+                std::cout << "| " << cell << " ";
+                if (cell < 10) std::cout << " "; // Adjust for single-digit numbers
+                else if (cell < 100) std::cout << ""; // Adjust for two-digit numbers
+            }
         }
-        std::cout << " |" << std::endl;
-        std::cout << "+---------------------+" << std::endl;
+        std::cout << "|" << std::endl; // Close the row
+        std::cout << horizontalBorder << std::endl; // Horizontal line between rows
     }
 }
 
-// Add a random tile (2 or 4) to an empty position
-void addRandomTile(int grid[GRID_SIZE][GRID_SIZE]) {
-    int emptyCells[GRID_SIZE * GRID_SIZE][2];
-    int emptyCount = 0;
+// Add a random tile (2 or 4) to an empty cell
+void addRandomTile(std::vector<std::vector<int>>& grid) {
+    std::vector<std::pair<int, int>> emptyCells;
 
-    // Find all empty cells
+    // Collect all empty cells
     for (int i = 0; i < GRID_SIZE; ++i) {
         for (int j = 0; j < GRID_SIZE; ++j) {
             if (grid[i][j] == 0) {
-                emptyCells[emptyCount][0] = i;
-                emptyCells[emptyCount][1] = j;
-                ++emptyCount;
+                emptyCells.push_back(std::make_pair(i, j)); // Add empty cell to list
             }
         }
     }
 
-    if (emptyCount > 0) {
-        // Pick a random empty cell
-        int randomIndex = std::rand() % emptyCount;
-        int row = emptyCells[randomIndex][0];
-        int col = emptyCells[randomIndex][1];
+    // Add a random tile if there are empty cells
+    if (!emptyCells.empty()) {
+        // Choose a random empty cell
+        std::pair<int, int> chosenCell = emptyCells[std::rand() % emptyCells.size()];
 
-        // Place a 2 (90%) or 4 (10%) in the chosen cell
-        grid[row][col] = (std::rand() % 10 == 0) ? 4 : 2;
+        // Extract the row and column
+        int row = chosenCell.first;
+        int col = chosenCell.second;
+
+        // Assign a random value (2 or 4)
+        grid[row][col] = (std::rand() % 10 < 9) ? 2 : 4; // 90% chance of 2, 10% chance of 4
     }
 }
 
-// Check if the game is over (no valid moves)
-bool isGameOver(int grid[GRID_SIZE][GRID_SIZE]) {
-    // Check for empty cells
+
+// Check if the game is over
+bool isGameOver(const std::vector<std::vector<int>>& grid) {
     for (int i = 0; i < GRID_SIZE; ++i) {
         for (int j = 0; j < GRID_SIZE; ++j) {
-            if (grid[i][j] == 0)
-                return false;
+            if (grid[i][j] == 0) return false; // Empty cell exists
+            if (j < GRID_SIZE - 1 && grid[i][j] == grid[i][j + 1]) return false; // Check right
+            if (i < GRID_SIZE - 1 && grid[i][j] == grid[i + 1][j]) return false; // Check down
+        }
+    }
+    return true;
+}
+
+// Helper function to slide and merge a row or column
+bool slideAndMerge(std::vector<int>& line) {
+    bool moved = false;
+    int size = line.size();
+
+    // Slide non-zero values to the left
+    std::vector<int> newLine(size, 0);
+    int index = 0;
+    for (int value : line) {
+        if (value != 0) {
+            newLine[index++] = value;
         }
     }
 
-    // Check for adjacent tiles with the same value
-    for (int i = 0; i < GRID_SIZE; ++i) {
-        for (int j = 0; j < GRID_SIZE - 1; ++j) {
-            if (grid[i][j] == grid[i][j + 1] || grid[j][i] == grid[j + 1][i])
-                return false;
+    // Merge adjacent tiles
+    for (int i = 0; i < size - 1; ++i) {
+        if (newLine[i] != 0 && newLine[i] == newLine[i + 1]) {
+            newLine[i] *= 2;
+            newLine[i + 1] = 0;
+            moved = true;
         }
     }
 
-    return true; // No empty cells or valid merges left
+    // Slide again after merging
+    index = 0;
+    for (int value : newLine) {
+        if (value != 0) {
+            line[index++] = value;
+        }
+    }
+    while (index < size) {
+        line[index++] = 0;
+    }
+
+    return moved;
+}
+
+// Movement functions
+bool moveLeft(std::vector<std::vector<int>>& grid) {
+    bool moved = false;
+    for (auto& row : grid) {
+        moved |= slideAndMerge(row);
+    }
+    return moved;
+}
+
+bool moveRight(std::vector<std::vector<int>>& grid) {
+    bool moved = false;
+    for (auto& row : grid) {
+        std::reverse(row.begin(), row.end());
+        moved |= slideAndMerge(row);
+        std::reverse(row.begin(), row.end());
+    }
+    return moved;
+}
+
+bool moveUp(std::vector<std::vector<int>>& grid) {
+    bool moved = false;
+    for (int col = 0; col < GRID_SIZE; ++col) {
+        std::vector<int> column(GRID_SIZE);
+        for (int row = 0; row < GRID_SIZE; ++row) {
+            column[row] = grid[row][col];
+        }
+        moved |= slideAndMerge(column);
+        for (int row = 0; row < GRID_SIZE; ++row) {
+            grid[row][col] = column[row];
+        }
+    }
+    return moved;
+}
+
+bool moveDown(std::vector<std::vector<int>>& grid) {
+    bool moved = false;
+    for (int col = 0; col < GRID_SIZE; ++col) {
+        std::vector<int> column(GRID_SIZE);
+        for (int row = 0; row < GRID_SIZE; ++row) {
+            column[row] = grid[GRID_SIZE - 1 - row][col];
+        }
+        moved |= slideAndMerge(column);
+        for (int row = 0; row < GRID_SIZE; ++row) {
+            grid[GRID_SIZE - 1 - row][col] = column[row];
+        }
+    }
+    return moved;
 }
