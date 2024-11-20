@@ -83,6 +83,7 @@ Here’s how the grid appears during gameplay:
 +----+----+----+----+
 
 Enter move (W: Up, A: Left, S: Down, D: Right):
+Score:
 ```
 
 ---
