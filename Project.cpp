@@ -8,24 +8,25 @@ const int GRID_SIZE = 4;
 
 // Function prototypes
 void initializeGrid(std::vector<std::vector<int>>& grid);
-void displayGrid(const std::vector<std::vector<int>>& grid);
+void displayGrid(const std::vector<std::vector<int>>& grid, int score);
 void addRandomTile(std::vector<std::vector<int>>& grid);
 bool isGameOver(const std::vector<std::vector<int>>& grid);
-bool moveLeft(std::vector<std::vector<int>>& grid, bool& moved);
-bool moveRight(std::vector<std::vector<int>>& grid, bool& moved);
-bool moveUp(std::vector<std::vector<int>>& grid, bool& moved);
-bool moveDown(std::vector<std::vector<int>>& grid, bool& moved);
-bool slideAndMerge(std::vector<int>& line, bool& moved);  // Modified to return if any move/merge happened
+bool moveLeft(std::vector<std::vector<int>>& grid, bool& moved, int& score);
+bool moveRight(std::vector<std::vector<int>>& grid, bool& moved, int& score);
+bool moveUp(std::vector<std::vector<int>>& grid, bool& moved, int& score);
+bool moveDown(std::vector<std::vector<int>>& grid, bool& moved, int& score);
+bool slideAndMerge(std::vector<int>& line, bool& moved, int& scoreDelta);  // Modified to return if any move/merge happened
 
 int main() {
     std::vector<std::vector<int>> grid(GRID_SIZE, std::vector<int>(GRID_SIZE, 0));
+    int score = 0; // local variable to store the score
     char input;
 
     std::srand(std::time(0));
     initializeGrid(grid);
 
     while (true) {
-        displayGrid(grid);
+        displayGrid(grid, score); //Pass score to display
 
         if (isGameOver(grid)) {
             std::cout << "Game Over! No more valid moves!" << std::endl;
@@ -39,10 +40,10 @@ int main() {
         bool moved = false;
 
         switch (input) {
-        case 'W': case 'w': validMove = moveUp(grid, moved); break;
-        case 'A': case 'a': validMove = moveLeft(grid, moved); break;
-        case 'S': case 's': validMove = moveDown(grid, moved); break;
-        case 'D': case 'd': validMove = moveRight(grid, moved); break;
+        case 'W': case 'w': validMove = moveUp(grid, moved, score); break;
+        case 'A': case 'a': validMove = moveLeft(grid, moved, score); break;
+        case 'S': case 's': validMove = moveDown(grid, moved, score); break;
+        case 'D': case 'd': validMove = moveRight(grid, moved, score); break;
         default:
             std::cout << "Invalid input. Use W, A, S, D." << std::endl;  // Error message for invalid input
             continue; // Skip the rest of the loop and ask for input again
@@ -64,7 +65,7 @@ void initializeGrid(std::vector<std::vector<int>>& grid) {
 }
 
 // Display the grid
-void displayGrid(const std::vector<std::vector<int>>& grid) {
+void displayGrid(const std::vector<std::vector<int>>& grid, int score) {
     const std::string horizontalBorder = "+----+----+----+----+";
 
     std::cout << horizontalBorder << std::endl; // Draw top border
@@ -72,16 +73,23 @@ void displayGrid(const std::vector<std::vector<int>>& grid) {
         for (int cell : row) {   // Loop through each cell in the row
             if (cell == 0) {
                 std::cout << "|    "; // Empty cells display as blank
-            }
-            else {
-                std::cout << "| " << cell << " ";
-                if (cell < 10) std::cout << " "; // Adjust for single-digit numbers
-                else if (cell < 100) std::cout << ""; // Adjust for two-digit numbers
+            } else {
+                // Align each number to 4 characters (total width for each cell)
+                if (cell < 10) {
+                    std::cout << "|   " << cell; // One-digit numbers have 3 spaces
+                } else if (cell < 100) {
+                    std::cout << "|  " << cell; // Two-digit numbers have 2 spaces
+                } else if (cell < 1000) {
+                    std::cout << "| " << cell; // Three-digit numbers have 1 space
+                } else {
+                    std::cout << "|" << cell; // Four-digit numbers should fit without additional spacing
+                }
             }
         }
         std::cout << "|" << std::endl; // Close the row
         std::cout << horizontalBorder << std::endl; // Horizontal line between rows
     }
+    std::cout << "Score: " << score << std::endl; // Display the score
 }
 
 // Add a random tile (2 or 4) to an empty cell
@@ -122,7 +130,7 @@ bool isGameOver(const std::vector<std::vector<int>>& grid) {
 }
 
 // Helper function to slide and merge a row or column, modified to return if any move/merge happened
-bool slideAndMerge(std::vector<int>& line, bool& moved) {
+bool slideAndMerge(std::vector<int>& line, bool& moved, int& scoreDelta) {
     bool lineChanged = false; // Новый флаг для отслеживания изменений
     int size = line.size();
     // Slide non-zero values to the left
@@ -142,6 +150,7 @@ bool slideAndMerge(std::vector<int>& line, bool& moved) {
     for (int i = 0; i < size - 1; ++i) {
         if (newLine[i] != 0 && newLine[i] == newLine[i + 1]) {
             newLine[i] *= 2;     // Double the value
+            scoreDelta += newLine[i]; //Update score for the merged value
             newLine[i + 1] = 0;  // Clear the merged cell
             lineChanged = true; // Маркируем изменение в новый флаг
         }
@@ -166,41 +175,46 @@ bool slideAndMerge(std::vector<int>& line, bool& moved) {
 }
 
 // Movement functions
-bool moveLeft(std::vector<std::vector<int>>& grid, bool& moved) {
+bool moveLeft(std::vector<std::vector<int>>& grid, bool& moved, int& score) {
     moved = false;
+    int scoreDelta = 0;
     for (auto& row : grid) {
         bool rowMoved = false;
-        slideAndMerge(row, rowMoved);  // Теперь `rowMoved` передается как отдельный флаг
+        slideAndMerge(row, rowMoved, scoreDelta);  // Теперь `rowMoved` передается как отдельный флаг
         if (rowMoved) {
             moved = true;  // Обновление флага `moved` при любом изменении строки
         }
     }
+    score += scoreDelta; // Update the score after merging
     return moved;
 }
 
-bool moveRight(std::vector<std::vector<int>>& grid, bool& moved) {
+bool moveRight(std::vector<std::vector<int>>& grid, bool& moved, int& score) {
     moved = false;
+    int scoreDelta = 0;
     for (auto& row : grid) {
         std::reverse(row.begin(), row.end());
         bool rowMoved = false;
-        slideAndMerge(row, rowMoved);  // Теперь `rowMoved` передается как отдельный флаг
+        slideAndMerge(row, rowMoved, scoreDelta);  // Теперь `rowMoved` передается как отдельный флаг
         if (rowMoved) {
             moved = true;  // Обновление флага `moved` при любом изменении строки
         }
         std::reverse(row.begin(), row.end());
     }
+    score += scoreDelta;
     return moved;
 }
 
-bool moveUp(std::vector<std::vector<int>>& grid, bool& moved) {
+bool moveUp(std::vector<std::vector<int>>& grid, bool& moved, int& score) {
     moved = false;
+    int scoreDelta = 0;
     for (int col = 0; col < GRID_SIZE; ++col) {
         std::vector<int> column(GRID_SIZE);
         for (int row = 0; row < GRID_SIZE; ++row) {
             column[row] = grid[row][col];
         }
         bool colMoved = false;
-        slideAndMerge(column, colMoved); // Теперь `colMoved` передается как отдельный флаг
+        slideAndMerge(column, colMoved, scoreDelta); // Теперь `colMoved` передается как отдельный флаг
         if (colMoved) {
             moved = true; // Обновление флага `moved` при любом изменении строки
         }
@@ -208,18 +222,20 @@ bool moveUp(std::vector<std::vector<int>>& grid, bool& moved) {
             grid[row][col] = column[row];
         }
     }
+    score += scoreDelta; // Update the score after merging
     return moved;
 }
 
-bool moveDown(std::vector<std::vector<int>>& grid, bool& moved) {
+bool moveDown(std::vector<std::vector<int>>& grid, bool& moved, int& score) {
     moved = false;
+    int scoreDelta = 0;
     for (int col = 0; col < GRID_SIZE; ++col) {
         std::vector<int> column(GRID_SIZE);
         for (int row = 0; row < GRID_SIZE; ++row) {
             column[row] = grid[GRID_SIZE - 1 - row][col];
         }
         bool colMoved = false;
-        slideAndMerge(column, colMoved); // Теперь `colMoved` передается как отдельный флаг
+        slideAndMerge(column, colMoved, scoreDelta); // Теперь `colMoved` передается как отдельный флаг
         if (colMoved) {
             moved = true; // Обновление флага `moved` при любом изменении строки
         }
@@ -227,5 +243,6 @@ bool moveDown(std::vector<std::vector<int>>& grid, bool& moved) {
             grid[GRID_SIZE - 1 - row][col] = column[row];
         }
     }
+    score += scoreDelta; // Update the score after merging
     return moved;
 }
