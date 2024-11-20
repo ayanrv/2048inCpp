@@ -11,7 +11,7 @@ Welcome to the **2048 Game**, implemented entirely in C++! This console-based ga
 - **Random Tile Generation**: Adds a touch of unpredictability with new tiles appearing after every valid move.
 - **Game Over Detection**: Ends the game when no valid moves are left.
 - **Clean, Modular Code**: Each functionality is implemented as a separate, reusable function.
-- **Simple and Intuitive Interface**: Play using `W`, `A`, `S`, and `D` for directions.
+- **Simple and Intuitive Interface**: Play using `W`, `A`, `S`, and `D` for directions. Player can see their score, it updates when the merge occurs.
 
 ---
 
@@ -45,7 +45,7 @@ Welcome to the **2048 Game**, implemented entirely in C++! This console-based ga
   Fills the grid with two random tiles (either `2` or `4`).
 
 ### 🖥️ Display
-- **`displayGrid(const std::vector<std::vector<int>>& grid)`**:
+- **`displayGrid(const std::vector<std::vector<int>>& grid, int score)`**:
   Prints the grid in a clean and formatted layout.
 
 ### 🎲 Random Tile Generation
@@ -55,15 +55,15 @@ Welcome to the **2048 Game**, implemented entirely in C++! This console-based ga
 ### 🕹️ Game Logic
 - **`isGameOver(const std::vector<std::vector<int>>& grid)`**:
   Checks if the player has any valid moves left.
-- **`slideAndMerge(std::vector<int>& line, bool& moved)`**:
+- **`slideAndMerge(std::vector<int>& line, bool& moved, int& scoreDelta)`**:
   Slides and merges a single row or column. Tracks if any changes occurred.
 
 ### 🚦 Movement Functions
 Moves tiles in the specified direction and merges them if possible:
-- **`moveLeft(std::vector<std::vector<int>>& grid, bool& moved)`**
-- **`moveRight(std::vector<std::vector<int>>& grid, bool& moved)`**
-- **`moveUp(std::vector<std::vector<int>>& grid, bool& moved)`**
-- **`moveDown(std::vector<std::vector<int>>& grid, bool& moved)`**
+- **`moveLeft(std::vector<std::vector<int>>& grid, bool& moved, int& score)`**
+- **`moveRight(std::vector<std::vector<int>>& grid, bool& moved, int& score)`**
+- **`moveUp(std::vector<std::vector<int>>& grid, bool& moved, int& score)`**
+- **`moveDown(std::vector<std::vector<int>>& grid, bool& moved, int& score)`**
 
 ---
 
