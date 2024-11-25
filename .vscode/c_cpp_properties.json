@@ -1,17 +1,22 @@
 {
-  "configurations": [
+    "configurations": [
       {
-          "name": "windows-gcc-x64",
-          "includePath": [
-              "${workspaceFolder}/**",
-              "C:/MinGW/include"
-          ],
-          "defines": [],
-          "compilerPath": "C:/MinGW/bin/gcc.exe",
-          "cStandard": "c17",
-          "cppStandard": "c++17",
-          "intelliSenseMode": "windows-gcc-x64"
+        "name": "windows-gcc-x64",
+        "includePath": [
+          "${workspaceFolder}/**",
+          "C:/MinGW/include",                    // Include MinGW headers
+          "C:/PDCurses-master",                  // Path to the root of PDCurses source
+          "C:/PDCurses-master/wincon"            // Path to PDCurses Windows-specific headers
+        ],
+        "defines": [
+          "HAVE_NO_INFOEX"                       // Define this to avoid extended info errors
+        ],
+        "compilerPath": "C:/MinGW/bin/gcc.exe",  // Path to GCC compiler
+        "cStandard": "c17",                      // C standard version
+        "cppStandard": "c++17",                  // C++ standard version
+        "intelliSenseMode": "windows-gcc-x64"    // IntelliSense mode
       }
-  ],
-  "version": 4
-}
+    ],
+    "version": 4
+  }
+  
