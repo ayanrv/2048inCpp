@@ -2,10 +2,10 @@
 #include <vector>
 #include <cstdlib>
 #include <ctime>
-#include <curses.h> // Include ncurses for screen manipulation
-#include <algorithm> // Include algorithm for std::reverse, which is used in movement functions
+#include <curses.h>
+#include <algorithm>
 
-const int GRID_SIZE = 4; // Define the grid size as a constant
+const int GRID_SIZE = 4; // Define the size of the grid (4x4)
 
 // Function prototypes
 void initializeGrid(std::vector<std::vector<int>>& grid);
@@ -18,54 +18,96 @@ bool moveUp(std::vector<std::vector<int>>& grid, bool& moved, int& score);
 bool moveDown(std::vector<std::vector<int>>& grid, bool& moved, int& score);
 bool slideAndMerge(std::vector<int>& line, bool& moved, int& scoreDelta);
 
+// Initialize ncurses color pairs for tiles and borders
+void initializeColors() {
+    start_color(); // Enable color functionality in ncurses
+    use_default_colors(); // Use default terminal colors as base
+
+    // Array of background colors for tiles
+    int tileColors[] = {COLOR_BLUE, COLOR_GREEN, COLOR_RED, COLOR_CYAN,
+                        COLOR_MAGENTA, COLOR_YELLOW, COLOR_WHITE};
+
+    // Create color pairs for tiles (white text, colorful background)
+    for (int i = 0; i < 7; ++i) {
+        init_pair(i + 1, COLOR_WHITE, tileColors[i]); // Tile colors
+    }
+
+    // Create color pairs for borders (cycle through bright colors)
+    init_pair(8, COLOR_YELLOW, -1);    // Horizontal border
+    init_pair(9, COLOR_YELLOW, -1); // Vertical border
+}
+
+// Map a tile value (e.g., 2, 4, 8, ...) to a color pair index
+int getColorPairIndex(int value) {
+    if (value == 0) return -1; // Return -1 for no color (empty tiles)
+    int colorCount = 7; // Total number of defined colors
+    int index = 0; // Start with the first color pair
+
+    // Determine the index based on the power of 2
+    while (value > 1) {
+        value /= 2;
+        ++index;
+    }
+
+    return (index - 1) % colorCount + 1; // Cycle through the colors dynamically
+}
+
+// Main function to run the game
 int main() {
     std::vector<std::vector<int>> grid(GRID_SIZE, std::vector<int>(GRID_SIZE, 0)); // Create a 4x4 grid initialized with zeros
-    int score = 0; // Initialize the game score to 0
-    char input;    // Variable to store user input
+    int score = 0; // Initialize the game score
+    int input; // Use int instead of char for user input
 
-    std::srand(std::time(0)); // Seed the random number generator with the current time for randomness
+    std::srand(std::time(0)); // Seed random number generator for random tile placement
 
-    // Initialize ncurses
-    initscr();          // Start ncurses mode, allowing direct terminal manipulation
-    noecho();           // Disable echoing of user input for cleaner display
-    cbreak();           // Disable line buffering, making input available immediately
-    keypad(stdscr, TRUE); // Enable processing of special keys (like arrows)
+    // Initialize ncurses screen
+    initscr();
+    noecho();
+    cbreak();
+    keypad(stdscr, TRUE); // Enable arrow key input
 
+    initializeColors(); // Initialize color pairs for the game
     initializeGrid(grid); // Add two random tiles to start the game
 
+    // Main game loop
     while (true) {
-        clear();              // Clear the screen to prepare for a new frame
-        displayGrid(grid, score); // Render the grid and current score
+        clear(); // Clear the screen to prepare for drawing the grid
+        displayGrid(grid, score); // Render the grid and display the score
 
         // Check if the game is over
         if (isGameOver(grid)) {
-            // If the game is over, display a message and wait for user input to exit
-            mvprintw(GRID_SIZE * 2 + 2, 0, "Game Over! No more valid moves!");
+            mvprintw(GRID_SIZE * 2 + 2, 0, "Game Over! No more valid moves!"); // Game over message
             mvprintw(GRID_SIZE * 2 + 3, 0, "Press any key to exit...");
-            refresh();        // Update the screen to show the game-over messages
-            getch();          // Wait for user input before exiting
-            break;            // Exit the main game loop
+            refresh(); // Refresh the screen to show game-over messages
+            getch(); // Wait for user input to acknowledge the game over
+            break; // Exit the main game loop
         }
 
         // Prompt the user for input
-        mvprintw(GRID_SIZE * 2 + 1, 0, "Enter move (W: Up, A: Left, S: Down, D: Right): ");
-        refresh();            // Refresh the screen to display the prompt
-        input = getch();      // Capture user input using ncurses
+        mvprintw(GRID_SIZE * 2 + 1, 0, "Use Arrow Keys or WASD for movement. Press Q to Quit.");
+        refresh(); // Display the prompt
+        input = getch(); // Capture user input
 
-        bool validMove = false; // Tracks whether the input corresponds to a valid move
-        bool moved = false;    // Tracks whether the grid changed after the move
+        bool validMove = false; // Flag to check if the input was valid
+        bool moved = false; // Flag to check if the grid changed
 
-        // Handle the user's input and perform the corresponding move
+        // Handle user input and perform corresponding moves
         switch (input) {
-        case 'W': case 'w': validMove = moveUp(grid, moved, score); break;  // Move tiles up
-        case 'A': case 'a': validMove = moveLeft(grid, moved, score); break; // Move tiles left
-        case 'S': case 's': validMove = moveDown(grid, moved, score); break; // Move tiles down
-        case 'D': case 'd': validMove = moveRight(grid, moved, score); break; // Move tiles right
+        case 'W': case 'w': case KEY_UP:
+            validMove = moveUp(grid, moved, score); break; // Move up
+        case 'A': case 'a': case KEY_LEFT:
+            validMove = moveLeft(grid, moved, score); break; // Move left
+        case 'S': case 's': case KEY_DOWN:
+            validMove = moveDown(grid, moved, score); break; // Move down
+        case 'D': case 'd': case KEY_RIGHT:
+            validMove = moveRight(grid, moved, score); break; // Move right
+        case 'Q': case 'q':
+            endwin(); // End ncurses mode and restore the terminal
+            return 0; // Exit the game
         default:
-            // If input is invalid, display an error message
-            mvprintw(GRID_SIZE * 2 + 4, 0, "Invalid input. Use W, A, S, D.");
-            refresh();        // Refresh the screen to show the error message
-            continue;         // Skip further processing and ask for input again
+            mvprintw(GRID_SIZE * 2 + 4, 0, "Invalid input. Use Arrow Keys or WASD.");
+            refresh();
+            continue; // Skip further processing and wait for another input
         }
 
         // If the move was valid and the grid changed, add a new random tile
@@ -74,80 +116,92 @@ int main() {
         }
     }
 
-    endwin(); // End ncurses mode and restore the terminal to its original settings
+    endwin(); // End ncurses mode and restore the terminal
     return 0;
 }
 
-// Add two random tiles to the grid to start the game
+
+// Initialize the grid with two random tiles
 void initializeGrid(std::vector<std::vector<int>>& grid) {
-    addRandomTile(grid);
-    addRandomTile(grid);
+    addRandomTile(grid); // Add the first random tile
+    addRandomTile(grid); // Add the second random tile
 }
 
+// Display the game grid with tiles and score
 void displayGrid(const std::vector<std::vector<int>>& grid, int score) {
-    const std::string horizontalBorder = "+----+----+----+----+"; // Define the horizontal border for the grid
+    const char* horizontalBorder = "+-----+-----+-----+-----+"; // Horizontal border format
 
-    // Clear the screen
     clear();
+    for (int i = 0; i < grid.size(); ++i) {
+        // Print horizontal border with a specific color
+        attron(COLOR_PAIR(8));
+        mvprintw(i * 2, 0, "%s", horizontalBorder);
+        attroff(COLOR_PAIR(8));
 
-    // Draw the grid
-    for (int i = 0; i < GRID_SIZE; ++i) {
-        mvprintw(i * 2, 0, horizontalBorder.c_str()); // Print the horizontal border for each row
-        for (int j = 0; j < GRID_SIZE; ++j) {
-            if (grid[i][j] == 0) {
-                mvprintw(i * 2 + 1, j * 5, "|    "); // Empty cell
+        for (int j = 0; j < grid[i].size(); ++j) {
+            // Print vertical borders with a specific color
+            attron(COLOR_PAIR(9));
+            mvprintw(i * 2 + 1, j * 6, "|");
+            attroff(COLOR_PAIR(9));
+
+            int value = grid[i][j];
+            int colorPair = getColorPairIndex(value);
+
+            // Print the tile value or leave empty space
+            if (value == 0) {
+                mvprintw(i * 2 + 1, j * 6 + 1, "     "); // Empty cell
             } else {
-                mvprintw(i * 2 + 1, j * 5, "|%4d", grid[i][j]); // Right-aligned numbers
+                attron(COLOR_PAIR(colorPair));
+                mvprintw(i * 2 + 1, j * 6 + 1, " %4d", value); // Tile value
+                attroff(COLOR_PAIR(colorPair));
             }
         }
-        mvprintw(i * 2 + 1, GRID_SIZE * 5, "|"); // Close the row with a vertical bar
+
+        // Close the row with the final vertical border
+        attron(COLOR_PAIR(9));
+        mvprintw(i * 2 + 1, grid[0].size() * 6, "|");
+        attroff(COLOR_PAIR(9));
     }
-    mvprintw(GRID_SIZE * 2, 0, horizontalBorder.c_str()); // Print the bottom border of the grid
 
-    // Add extra space to separate the score from the grid
-    mvprintw(GRID_SIZE * 2 + 1, 0, ""); // Ensure no overlapping happens here
+    // Print the final horizontal border
+    attron(COLOR_PAIR(8));
+    mvprintw(grid.size() * 2, 0, "%s", horizontalBorder);
+    attroff(COLOR_PAIR(8));
 
-    // Display the score directly below the grid
-    mvprintw(GRID_SIZE * 2 + 2, 0, "Score: %d", score); // Adjusted position for the score count
-
-    // Refresh the screen to apply the changes
-    refresh();
+    // Display the score below the grid
+    mvprintw(grid.size() * 2 + 3, 0, "Score: %d", score);
+    refresh(); // Refresh the screen to show changes
 }
 
-
-
-// Add a random tile (2 or 4) to an empty cell in the grid
+// Add a random tile (2 or 4) to an empty cell
 void addRandomTile(std::vector<std::vector<int>>& grid) {
-    std::vector<std::pair<int, int>> emptyCells;
+    std::vector<std::pair<int, int>> emptyCells; // List of empty cells
 
     // Find all empty cells in the grid
     for (int i = 0; i < GRID_SIZE; ++i) {
         for (int j = 0; j < GRID_SIZE; ++j) {
             if (grid[i][j] == 0) {
-                emptyCells.emplace_back(i, j);
+                emptyCells.emplace_back(i, j); // Add empty cell to the list
             }
         }
     }
 
-    // If no empty cells are left, return
-    if (emptyCells.empty()) {
-        return;
-    }
+    // If no empty cells are available, do nothing
+    if (emptyCells.empty()) return;
 
     // Select a random empty cell and place a 2 or 4
-    int randomIndex = std::rand() % emptyCells.size();
-    int value = (std::rand() % 10 < 9) ? 2 : 4; // 90% chance for a 2, 10% for a 4
-    grid[emptyCells[randomIndex].first][emptyCells[randomIndex].second] = value;
+    int randomIndex = std::rand() % emptyCells.size(); //std::rand() generates a random integer and % emptyCells.size() ensures the index is within the valid range of emptyCells. 
+    int value = (std::rand() % 10 < 9) ? 2 : 4; // 90% chance for 2, 10% for 4
+    grid[emptyCells[randomIndex].first][emptyCells[randomIndex].second] = value; //Accesses the grid cell at the row emptyCells[randomIndex].first and column emptyCells[randomIndex].second. Assigns the value (2 or 4) to that cell.
 }
-// Other functions (isGameOver, slideAndMerge, movement functions) remain unchanged
 
 // Check if the game is over
 bool isGameOver(const std::vector<std::vector<int>>& grid) {
-    for (int i = 0; i < GRID_SIZE; ++i) {
-        for (int j = 0; j < GRID_SIZE; ++j) {
-            if (grid[i][j] == 0) return false;  // Empty cell found, not over
-            if (i < GRID_SIZE - 1 && grid[i][j] == grid[i + 1][j]) return false; // Check down = Vertical mergeable
-            if (j < GRID_SIZE - 1 && grid[i][j] == grid[i][j + 1]) return false; // Check right = Horizontal mergeable
+    for (int i = 0; i < GRID_SIZE; ++i) { // Loop through rows
+        for (int j = 0; j < GRID_SIZE; ++j) { // Loop through columns
+            if (grid[i][j] == 0) return false; // Empty cell found, not over
+            if (i < GRID_SIZE - 1 && grid[i][j] == grid[i + 1][j]) return false; // Vertical merge possible
+            if (j < GRID_SIZE - 1 && grid[i][j] == grid[i][j + 1]) return false; // Horizontal merge possible
         }
     }
     return true; // No moves possible
