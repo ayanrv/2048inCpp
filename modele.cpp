@@ -150,6 +150,7 @@ bool slideAndMerge(std::vector<int>& line, bool& moved, int& scoreDelta) {
             scoreDelta += newLine[i]; //Update score for the merged value
             newLine[i + 1] = 0;  // Clear the merged cell
             lineChanged = true; // Маркируем изменение в новый флаг
+            i++; // Skip the next tile to avoid double merge
         }
     }
 
@@ -167,6 +168,12 @@ bool slideAndMerge(std::vector<int>& line, bool& moved, int& scoreDelta) {
     if (lineChanged) {  // Обновление флага движения
         moved = true;
     }
+
+     // Check if the line has changed
+    if (line != newLine) {
+        moved = true;
+    }
+
 
     return lineChanged; // Возвращаем обновление флага движения
 }
