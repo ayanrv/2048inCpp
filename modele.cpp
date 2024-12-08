@@ -47,58 +47,68 @@ void initializeGrid(std::vector<std::vector<int>>& grid) {
 }
 
 // Display the game grid with tiles and score
-void displayGrid(const std::vector<std::vector<int>>& grid, int score) {
-    const char* horizontalBorder = "+-----+-----+-----+-----+"; // Horizontal border format
+void displayGrid(const std::vector<std::vector<int>>& grid, int score, int bestScore) {
+    clear(); // Clear the screen before drawing the grid
+    const std::string horizontalBorder = "+-----"; // Define the horizontal border format for grid cells
 
-    clear();
+    // Loop through each row in the grid
     for (int i = 0; i < grid.size(); ++i) {
-        // Print horizontal border with a specific color
-        attron(COLOR_PAIR(8));
-        mvprintw(i * 2, 0, "%s", horizontalBorder);
-        attroff(COLOR_PAIR(8));
+        // Print the horizontal border for the current row with a specific color
+        attron(COLOR_PAIR(8)); // Enable the color pair for horizontal borders
+        for (int j = 0; j < grid.size(); ++j) {
+            mvprintw(i * 2, j * 6, "+-----"); // Print the horizontal border for each cell in the row
+        }
+        mvprintw(i * 2, grid.size() * 6, "+"); // Print the final "+" at the end of the row
+        attroff(COLOR_PAIR(8)); // Disable the color pair for horizontal borders
 
+        // Loop through each cell in the current row
         for (int j = 0; j < grid[i].size(); ++j) {
-            // Print vertical borders with a specific color
-            attron(COLOR_PAIR(9));
-            mvprintw(i * 2 + 1, j * 6, "|");
-            attroff(COLOR_PAIR(9));
+            int value = grid[i][j]; // Get the value of the current cell
+            int colorPair = getColorPairIndex(value); // Get the corresponding color pair index for the value
 
-            int value = grid[i][j];
-            int colorPair = getColorPairIndex(value);
+            // Print the vertical border (left side of the cell)
+            attron(COLOR_PAIR(9)); // Enable the color pair for vertical borders
+            mvprintw(i * 2 + 1, j * 6, "|"); // Print the vertical border
+            attroff(COLOR_PAIR(9)); // Disable the color pair for vertical borders
 
-            // Print the tile value or leave empty space
+            // Print the cell value or leave it blank if the value is 0
             if (value == 0) {
-                mvprintw(i * 2 + 1, j * 6 + 1, "     "); // Empty cell
+                mvprintw(i * 2 + 1, j * 6 + 1, "     "); // Print blank space for empty cells
             } else {
-                attron(COLOR_PAIR(colorPair));
-                mvprintw(i * 2 + 1, j * 6 + 1, " %4d", value); // Tile value
-                attroff(COLOR_PAIR(colorPair));
+                attron(COLOR_PAIR(colorPair)); // Enable the color pair corresponding to the value
+                mvprintw(i * 2 + 1, j * 6 + 1, " %4d", value); // Print the cell value, right-aligned in 5 spaces
+                attroff(COLOR_PAIR(colorPair)); // Disable the color pair
             }
         }
 
-        // Close the row with the final vertical border
-        attron(COLOR_PAIR(9));
-        mvprintw(i * 2 + 1, grid[0].size() * 6, "|");
-        attroff(COLOR_PAIR(9));
+        // Print the final vertical border at the end of the row
+        attron(COLOR_PAIR(9)); // Enable the color pair for vertical borders
+        mvprintw(i * 2 + 1, grid.size() * 6, "|"); // Print the final vertical border
+        attroff(COLOR_PAIR(9)); // Disable the color pair for vertical borders
     }
 
-    // Print the final horizontal border
-    attron(COLOR_PAIR(8));
-    mvprintw(grid.size() * 2, 0, "%s", horizontalBorder);
-    attroff(COLOR_PAIR(8));
+    // Print the final horizontal border at the bottom of the grid
+    attron(COLOR_PAIR(8)); // Enable the color pair for horizontal borders
+    for (int j = 0; j < grid.size(); ++j) {
+        mvprintw(grid.size() * 2, j * 6, "+-----"); // Print the horizontal border for each cell
+    }
+    mvprintw(grid.size() * 2, grid.size() * 6, "+"); // Print the final "+" at the end of the last row
+    attroff(COLOR_PAIR(8)); // Disable the color pair for horizontal borders
 
-    // Display the score below the grid
-    mvprintw(grid.size() * 2 + 3, 0, "Score: %d", score);
-    refresh(); // Refresh the screen to show changes
+    // Display the score and best score below the grid
+    mvprintw(grid.size() * 2 + 4, 0, "Score: %d", score); // Print the current score
+    mvprintw(grid.size() * 2 + 5, 0, "Best Score: %d", bestScore); // Display the best score
+    refresh(); // Refresh the screen to show all the changes
 }
+
 
 // Add a random tile (2 or 4) to an empty cell
 void addRandomTile(std::vector<std::vector<int>>& grid) {
     std::vector<std::pair<int, int>> emptyCells; // List of empty cells
 
     // Find all empty cells in the grid
-    for (int i = 0; i < GRID_SIZE; ++i) {
-        for (int j = 0; j < GRID_SIZE; ++j) {
+    for (int i = 0; i < grid.size(); ++i) {
+        for (int j = 0; j < grid.size(); ++j) {
             if (grid[i][j] == 0) {
                 emptyCells.emplace_back(i, j); // Add empty cell to the list
             }
@@ -116,11 +126,11 @@ void addRandomTile(std::vector<std::vector<int>>& grid) {
 
 // Check if the game is over
 bool isGameOver(const std::vector<std::vector<int>>& grid) {
-    for (int i = 0; i < GRID_SIZE; ++i) { // Loop through rows
-        for (int j = 0; j < GRID_SIZE; ++j) { // Loop through columns
+    for (int i = 0; i < grid.size(); ++i) { // Loop through rows
+        for (int j = 0; j < grid.size(); ++j) { // Loop through columns
             if (grid[i][j] == 0) return false; // Empty cell found, not over
-            if (i < GRID_SIZE - 1 && grid[i][j] == grid[i + 1][j]) return false; // Vertical merge possible
-            if (j < GRID_SIZE - 1 && grid[i][j] == grid[i][j + 1]) return false; // Horizontal merge possible
+            if (i < grid.size() - 1 && grid[i][j] == grid[i + 1][j]) return false; // Vertical merge possible
+            if (j < grid.size() - 1 && grid[i][j] == grid[i][j + 1]) return false; // Horizontal merge possible
         }
     }
     return true; // No moves possible
@@ -212,9 +222,9 @@ bool moveRight(std::vector<std::vector<int>>& grid, bool& moved, int& score) {
 bool moveUp(std::vector<std::vector<int>>& grid, bool& moved, int& score) {
     moved = false;
     int scoreDelta = 0;
-    for (int col = 0; col < GRID_SIZE; ++col) {
-        std::vector<int> column(GRID_SIZE);
-        for (int row = 0; row < GRID_SIZE; ++row) {
+    for (int col = 0; col < grid.size(); ++col) {
+        std::vector<int> column(grid.size());
+        for (int row = 0; row < grid.size(); ++row) {
             column[row] = grid[row][col];
         }
         bool colMoved = false;
@@ -222,7 +232,7 @@ bool moveUp(std::vector<std::vector<int>>& grid, bool& moved, int& score) {
         if (colMoved) {
             moved = true; // Обновление флага `moved` при любом изменении строки
         }
-        for (int row = 0; row < GRID_SIZE; ++row) {
+        for (int row = 0; row < grid.size(); ++row) {
             grid[row][col] = column[row];
         }
     }
@@ -233,18 +243,18 @@ bool moveUp(std::vector<std::vector<int>>& grid, bool& moved, int& score) {
 bool moveDown(std::vector<std::vector<int>>& grid, bool& moved, int& score) {
     moved = false;
     int scoreDelta = 0;
-    for (int col = 0; col < GRID_SIZE; ++col) {
-        std::vector<int> column(GRID_SIZE);
-        for (int row = 0; row < GRID_SIZE; ++row) {
-            column[row] = grid[GRID_SIZE - 1 - row][col];
+    for (int col = 0; col < grid.size(); ++col) {
+        std::vector<int> column(grid.size());
+        for (int row = 0; row < grid.size(); ++row) {
+            column[row] = grid[grid.size() - 1 - row][col];
         }
         bool colMoved = false;
         slideAndMerge(column, colMoved, scoreDelta); // Теперь `colMoved` передается как отдельный флаг
         if (colMoved) {
             moved = true; // Обновление флага `moved` при любом изменении строки
         }
-        for (int row = 0; row < GRID_SIZE; ++row) {
-            grid[GRID_SIZE - 1 - row][col] = column[row];
+        for (int row = 0; row < grid.size(); ++row) {
+            grid[grid.size() - 1 - row][col] = column[row];
         }
     }
     score += scoreDelta; // Update the score after merging
