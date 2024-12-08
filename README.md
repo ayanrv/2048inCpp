@@ -1,77 +1,88 @@
+# 🎮 2048 Game in C++ with AI
 
-# 🎮 2048 Game in C++
+This project implements the classic **2048 game** in C++ with modular design and AI functionality. The game uses **PDCurses** for terminal-based UI and supports both manual gameplay and AI-driven automation.
 
-Welcome to the **2048 Game**, implemented entirely in C++! This console-based game brings the addictive puzzle gameplay of **2048** to your terminal. Merge tiles, strategize, and aim for the **2048 tile** to win!
+---
+
+## 📂 Project Overview
+
+This repository contains:
+- A **classic 2048 game** where you can manually play by sliding tiles.
+- An **AI player** that predicts moves up to three steps ahead to aim for the highest score.
+- Modular design for easy understanding and maintainability.
 
 ---
 
 ## 🚀 Features
 
-- **Classic Gameplay**: Slide and merge tiles to create higher values.
-- **Random Tile Generation**: Adds a touch of unpredictability with new tiles appearing after every valid move.
-- **Game Over Detection**: Ends the game when no valid moves are left.
-- **Clean, Modular Code**: Each functionality is implemented as a separate, reusable function.
-- **Simple and Intuitive Interface**: Play using `W`, `A`, `S`, and `D` for directions. Player can see their score, it updates when the merge occurs.
+### 🎮 Classic Gameplay
+- **Sliding Tiles**: Use `W`, `A`, `S`, `D` or arrow keys to move tiles.
+- **Undo Support**: Undo the last move for better strategy.
+- **Dynamic Grid Size**: Play with grids of size 4x4, 5x5, or 6x6.
+- **Hints**: Use AI to suggest the best move for your current state.
+- **Score Tracking**: Displays the current and best scores.
+
+### 🤖 AI Mode
+- Predicts up to **three steps ahead** to evaluate the best moves.
+- Heuristic evaluation based on:
+  - **Score Maximization**: Prioritizes moves that yield the highest score.
+  - **Empty Tiles**: Keeps more open spaces for survivability.
+  - **Monotonicity**: Encourages a smooth tile arrangement for easier merging.
+  - **Merge Potential**: Favors moves that create larger tiles.
+- Fully autonomous gameplay.
 
 ---
 
-## 🎯 How to Play
+## 📜 How to Compile and Run
 
-1. **Compile the Code**:
-   ```bash
-   g++ Project.cpp -o 2048
-   ```
-2. **Run the Game**:
-   ```bash
-   ./2048
-   ```
-3. **Controls**:
-   - **W**: Move Up
-   - **A**: Move Left
-   - **S**: Move Down
-   - **D**: Move Right
+### Prerequisites
+- **`g++`** (GNU Compiler).
+- **PDCurses** library installed:
+  - Download from [PDCurses GitHub](https://github.com/wmcbrine/PDCurses).
 
-4. **Goal**: Merge tiles to reach the **2048** tile.
+### Compilation Commands
 
----
+#### Compile the Classic 2048 Game
+```bash
+g++ 2048.cpp modele.cpp menu.cpp ai.cpp -o 2048 -I"C:/PDCurses-master" -L"C:/PDCurses-master/wincon" -lpdcurses
 
-## 🛠️ Code Overview
+#### Compile the AI Player
+```bash
+g++ ai_player.cpp modele.cpp menu.cpp ai.cpp -o ai_player -I"C:/PDCurses-master" -L"C:/PDCurses-master/wincon" -lpdcurses
 
-### 🔧 Constants
-- **`GRID_SIZE`**: Sets the grid size to 4x4.
+## Running the Game
+1. Run the classic game:
+```bash
+./2048
 
-### 🌀 Initialization
-- **`initializeGrid(std::vector<std::vector<int>>& grid)`**:
-  Fills the grid with two random tiles (either `2` or `4`).
+2. Run the AI mode:
+```bash
+./ai_player
 
-### 🖥️ Display
-- **`displayGrid(const std::vector<std::vector<int>>& grid, int score)`**:
-  Prints the grid in a clean and formatted layout.
+### 📂 Project Structure
+File :	Description
+2048.cpp : Main file for the classic game, including game loops.
+ai_player.cpp	: Main file for the AI-driven autonomous mode.
+ai.cpp : Implements the AI logic, including heuristic evaluation.
+menu.cpp : Handles the interactive menu and game setup.
+modele.cpp : Core game mechanics (tile movement, merging, etc.).
+menu.hpp modele.hpp ai.hpp : Header files for the respective modules.
 
-### 🎲 Random Tile Generation
-- **`addRandomTile(std::vector<std::vector<int>>& grid)`**:
-  Adds a random tile (either `2` or `4`) to an empty cell.
+### 🛠️ Key Components
+#### Game Mechanics
+- Tile Movement: Implements moveUp, moveDown, moveLeft, and moveRight functions.
+- Random Tile Addition: Adds a 2 (90%) or 4 (10%) tile to empty cells after every move.
+- Grid Display: Uses PDCurses to render the game grid dynamically.
+#### AI Logic
+- Uses a heuristic-based evaluation function:
+    1. Score: Prefers moves with higher immediate scores.
+    2. Empty Tiles: Prioritizes moves that free up space.
+    3. Monotonicity: Encourages tile ordering for easier merges.
+    4. Merge Potential: Favors moves with high merging opportunities.
+- Predicts up to three moves ahead to select the most optimal path.
 
-### 🕹️ Game Logic
-- **`isGameOver(const std::vector<std::vector<int>>& grid)`**:
-  Checks if the player has any valid moves left.
-- **`slideAndMerge(std::vector<int>& line, bool& moved, int& scoreDelta)`**:
-  Slides and merges a single row or column. Tracks if any changes occurred.
-
-### 🚦 Movement Functions
-Moves tiles in the specified direction and merges them if possible:
-- **`moveLeft(std::vector<std::vector<int>>& grid, bool& moved, int& score)`**
-- **`moveRight(std::vector<std::vector<int>>& grid, bool& moved, int& score)`**
-- **`moveUp(std::vector<std::vector<int>>& grid, bool& moved, int& score)`**
-- **`moveDown(std::vector<std::vector<int>>& grid, bool& moved, int& score)`**
-
----
-
-## 📋 Sample Output
-
-Here’s how the grid appears during gameplay:
-
-```
+### 🖥️ Sample Outputs
+Classic Game
 +----+----+----+----+
 |    |    |    |    |
 +----+----+----+----+
@@ -82,25 +93,9 @@ Here’s how the grid appears during gameplay:
 |    |    |    |    |
 +----+----+----+----+
 
-Enter move (W: Up, A: Left, S: Down, D: Right):
-Score:
-```
+Score: 0
+Best Score: 1024
 
----
+Enter move (W: Up, A: Left, S: Down, D: Right, H: Hint, U: Undo, Q: Quit):
 
-## 🔮 Future Enhancements
-
-- **Score Tracking**: Display a score for the player’s performance.
-- **Graphical Interface**: 
-- **Save & Load**: Allow saving and loading game states.
-- **Customizable Grid Size**: 
-- **Undo Moves**: Add an undo feature for the last move.
-- **Use Ncurses library**: 
-
----
-
-## 👨‍💻 Author
-
-Created with ❤️ for Programmation Imperative on C++ course in Universite Paris-Saclay. 
-
----
+Developed with ❤️ for the Université Paris-Saclay Programmation Imperative C++ Course.

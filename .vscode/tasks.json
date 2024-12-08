@@ -6,18 +6,24 @@
             "type": "shell",
             "command": "g++",
             "args": [
-                "-g",
-                "-std=c++17",
-                "${file}",
-                "-o",
-                "${workspaceFolder}/2048"
+                "-g",                    // Enable debugging symbols
+                "-std=c++17",            // Use C++17 standard
+                "2048.cpp",              // Main game file
+                "modele.cpp",            // Dependencies
+                "menu.cpp",
+                "ai.cpp",
+                "-o",                    // Output flag
+                "${workspaceFolder}/2048", // Path to output executable
+                "-I", "C:/PDCurses-master", // Include PDCurses headers
+                "-L", "C:/PDCurses-master/wincon", // Link PDCurses libraries
+                "-lpdcurses"             // Link the PDCurses library
             ],
             "group": {
                 "kind": "build",
-                "isDefault": true
+                "isDefault": true        // Make this the default build task
             },
-            "problemMatcher": ["$gcc"],
-            "detail": "Компиляция C++ файла"
+            "problemMatcher": ["$gcc"],  // Use GCC problem matcher to parse errors/warnings
+            "detail": "Builds the 2048 project with all source files."
         }
     ]
 }
