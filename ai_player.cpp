@@ -10,10 +10,9 @@
 std::string getBestMove(const std::vector<std::vector<int>>& grid, int currentScore);
 int evaluateGrid(const std::vector<std::vector<int>>& grid);
 
-
 // Main function to run the AI-powered game
 int main() {
-    int gridSize = 5;         // Game grid size
+    int gridSize = 4;         // Game grid size
     int score = 0;            // Current game score
     int bestScore = loadBestScore(); // Load the best score from the file
     bool moved;               // Tracks if the move was successful
@@ -29,6 +28,7 @@ int main() {
     noecho();              // Disable echoing input
     cbreak();              // Disable line buffering
     keypad(stdscr, TRUE);  // Enable special key input
+    nodelay(stdscr, TRUE); // Non-blocking input
     initializeColors();    // Initialize game colors
 
     // Add two starting tiles
@@ -49,6 +49,15 @@ int main() {
             break;
         }
 
+        // Check for user input to quit
+        int ch = getch();  // Non-blocking input
+        if (ch == 'q' || ch == 'Q') {
+            mvprintw(gridSize * 2 + 5, 0, "Quitting game... Goodbye!");
+            refresh();
+            napms(1000);  // Wait for 1 second before exiting
+            break;
+        }
+
         // Get the best move from the AI
         std::string bestMove = getBestMove(grid, score);
         mvprintw(gridSize * 2 + 7, 0, "AI's Best Move: %s", bestMove.c_str());
@@ -65,6 +74,9 @@ int main() {
             getch();
             break;
         }
+
+        mvprintw(gridSize * 2 + 2, 0, "Press Q to Quit.");
+        refresh();
 
         // Add a random tile after a valid move
         if (moved) addRandomTile(grid);

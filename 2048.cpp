@@ -73,7 +73,7 @@ int main() {
 
         // Show hint if available
         if (!currentHint.empty()) {
-            mvprintw(gridSize * 2 + 8, 0, "Hint: %s", currentHint.c_str());
+            mvprintw(gridSize * 2 + 9, 0, "Hint: %s", currentHint.c_str());
         }
 
         // Show instructions for player input
@@ -109,10 +109,7 @@ int main() {
                     grid = prevGrid; // Revert grid to previous state
                     score = prevScore; // Revert score to previous state
                     undoAvailable = false; // Undo is now unavailable
-                    mvprintw(gridSize * 2 + 4, 0, "Undo successful!");
-                } else {
-                    mvprintw(gridSize * 2 + 4, 0, "Undo not available!");
-                }
+                } 
                 refresh();
                 continue; // Skip the rest of the loop after undo
             case 'H': case 'h': // Handle Hint
@@ -125,7 +122,7 @@ int main() {
                 endwin(); // End ncurses mode
                 return 0;
             default:
-                mvprintw(gridSize * 2 + 4, 0, "Invalid input. Use Arrow Keys or WASD.");
+                mvprintw(gridSize * 2 + 7, 0, "Invalid input. Use Arrow Keys or WASD.");
                 refresh();
                 continue; // Skip further processing and wait for another input
         }
