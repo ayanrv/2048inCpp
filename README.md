@@ -63,11 +63,6 @@ This project implements the classic **2048 game** in C++ with modular design and
 
 ## 📜 How to Compile and Run
 
-### Prerequisites
-- **`g++`** (GNU Compiler).
-- **PDCurses** library installed:
-  - Download from [PDCurses GitHub](https://github.com/wmcbrine/PDCurses).
-
 ### Compilation Commands
 
 ### Prerequisites
