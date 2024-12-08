@@ -2,14 +2,6 @@
 
 This project implements the classic **2048 game** in C++ with modular design and AI functionality. The game uses **PDCurses** for terminal-based UI and supports both manual gameplay and AI-driven automation.
 
----
-
-## 📂 Project Overview
-
-This repository contains:
-- A **classic 2048 game** where you can manually play by sliding tiles.
-- An **AI player** that predicts moves up to three steps ahead to aim for the highest score.
-- Modular design for easy understanding and maintainability.
 
 ---
 
@@ -33,69 +25,76 @@ This repository contains:
 
 ---
 
-## 📜 How to Compile and Run
+# 🛠️ Key Components
 
-### Prerequisites
-- **`g++`** (GNU Compiler).
-- **PDCurses** library installed:
-  - Download from [PDCurses GitHub](https://github.com/wmcbrine/PDCurses).
+## Game Mechanics
+- **Tile Movement**:
+  - Implements `moveUp`, `moveDown`, `moveLeft`, and `moveRight` functions.
+- **Random Tile Addition**:
+  - Adds a `2` (90%) or `4` (10%) tile to empty cells after every move.
+- **Grid Display**:
+  - Uses PDCurses to dynamically render the game grid with colorful tiles.
+
+## AI Logic
+- **Heuristic-based evaluation function**:
+  1. **Score**: Prefers moves with higher immediate scores.
+  2. **Empty Tiles**: Prioritizes moves that free up space.
+  3. **Monotonicity**: Encourages tile ordering for easier merges.
+  4. **Merge Potential**: Favors moves with high merging opportunities.
+- **Three-move prediction**:
+  - Evaluates up to three moves ahead to select the most optimal path.
+
+---
+
+# 📂 Project Structure
+
+| File             | Description                                                |
+|------------------ |-----------------------------------------------------------|
+| `2048.cpp`       | Main file for the classic game, including game loops.      |
+| `ai_player.cpp`  | Main file for the AI-driven autonomous mode.               |
+| `ai.cpp`         | Implements the AI logic, including heuristic evaluation.   |
+| `menu.cpp`       | Handles the interactive menu and game setup.               |
+| `modele.cpp`     | Core game mechanics: tile movement, merging, and scoring.  |
+| `menu.hpp`       | Header file for menu-related logic.                        |
+| `modele.hpp`     | Header file for core game mechanics.                       |
+| `ai.hpp`         | Header file for AI logic.                                  |
+
+---
+
+## 📜 How to Compile and Run
 
 ### Compilation Commands
 
-#### Compile the Classic 2048 Game
-```bash
+### Prerequisites
+1. **`g++`** (GNU Compiler).
+2. **PDCurses** library:
+   - Download and set up PDCurses from [PDCurses GitHub](https://github.com/wmcbrine/PDCurses).
+   - Add the `PDCurses` include and library paths to your system.
+
+---
+
+### Compilation Instructions
+
+#### Classic 2048 Game
+To build the classic game:
+
 g++ 2048.cpp modele.cpp menu.cpp ai.cpp -o 2048 -I"C:/PDCurses-master" -L"C:/PDCurses-master/wincon" -lpdcurses
+---
+#### AI-Powered Version
+To build AI-Powered autonomous player:
 
-#### Compile the AI Player
-```bash
 g++ ai_player.cpp modele.cpp menu.cpp ai.cpp -o ai_player -I"C:/PDCurses-master" -L"C:/PDCurses-master/wincon" -lpdcurses
+---
+### Running the game
+1. Run the Classic Game:
+    ./2048
+2. Run the AI Mode:
+    ./ai_player
 
-## Running the Game
-1. Run the classic game:
-```bash
-./2048
+---
 
-2. Run the AI mode:
-```bash
-./ai_player
+## ❤️ Developed For
+This project was developed as part of the **Université Paris-Saclay Programmation Imperative C++ Course**.
 
-### 📂 Project Structure
-File :	Description
-2048.cpp : Main file for the classic game, including game loops.
-ai_player.cpp	: Main file for the AI-driven autonomous mode.
-ai.cpp : Implements the AI logic, including heuristic evaluation.
-menu.cpp : Handles the interactive menu and game setup.
-modele.cpp : Core game mechanics (tile movement, merging, etc.).
-menu.hpp modele.hpp ai.hpp : Header files for the respective modules.
+---
 
-### 🛠️ Key Components
-#### Game Mechanics
-- Tile Movement: Implements moveUp, moveDown, moveLeft, and moveRight functions.
-- Random Tile Addition: Adds a 2 (90%) or 4 (10%) tile to empty cells after every move.
-- Grid Display: Uses PDCurses to render the game grid dynamically.
-#### AI Logic
-- Uses a heuristic-based evaluation function:
-    1. Score: Prefers moves with higher immediate scores.
-    2. Empty Tiles: Prioritizes moves that free up space.
-    3. Monotonicity: Encourages tile ordering for easier merges.
-    4. Merge Potential: Favors moves with high merging opportunities.
-- Predicts up to three moves ahead to select the most optimal path.
-
-### 🖥️ Sample Outputs
-Classic Game
-+----+----+----+----+
-|    |    |    |    |
-+----+----+----+----+
-|    |    |    |    |
-+----+----+----+----+
-|    |    |    |    |
-+----+----+----+----+
-|    |    |    |    |
-+----+----+----+----+
-
-Score: 0
-Best Score: 1024
-
-Enter move (W: Up, A: Left, S: Down, D: Right, H: Hint, U: Undo, Q: Quit):
-
-Developed with ❤️ for the Université Paris-Saclay Programmation Imperative C++ Course.
