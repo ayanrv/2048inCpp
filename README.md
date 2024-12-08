@@ -61,26 +61,6 @@ This project implements the classic **2048 game** in C++ with modular design and
 
 ---
 
-# 🖥️ Sample Outputs
-
-### Classic Game
-+----+----+----+----+
-|    |    |    |    |
-+----+----+----+----+
-|    |    |    |    |
-+----+----+----+----+
-|    |    |    |    |
-+----+----+----+----+
-|    |    |    |    |
-+----+----+----+----+
-
-Score: 0
-Best Score: 2048
-
-Enter move (W: Up, A: Left, S: Down, D: Right, H: Hint, U: Undo, Q: Quit):
-
----
-
 ## 📜 How to Compile and Run
 
 ### Prerequisites
