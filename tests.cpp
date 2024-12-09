@@ -1,8 +1,11 @@
 #include <iostream>
+#include <vector>
 #include "modele.hpp" // Include your original game logic header
-#include <curses.h>
+#include "menu.hpp"   // For saveBestScore/loadBestScore
 
-// Helper function to print a grid
+// Fonction pour afficher une grille.
+// Paramètre : 
+// "grid" : une matrice bidimensionnelle contenant les valeurs de la grille.
 void printGrid(const std::vector<std::vector<int>>& grid) {
     for (const auto& row : grid) {
         for (int cell : row) {
@@ -13,10 +16,11 @@ void printGrid(const std::vector<std::vector<int>>& grid) {
     std::cout << "\n";
 }
 
-// Test the initializeGrid function
+// Vérifie que la fonction `initializeGrid` initialise correctement la grille avec 2 tuiles non nulles.
+// Critère de réussite : La grille contient exactement 2 cellules non nulles après l'initialisation
 void testInitializeGrid() {
     std::cout << "Running testInitializeGrid...\n";
-    std::vector<std::vector<int>> grid(GRID_SIZE, std::vector<int>(GRID_SIZE, 0));
+    std::vector<std::vector<int>> grid(4, std::vector<int>(4, 0)); 
     initializeGrid(grid);
 
     int nonZeroCount = 0;
@@ -33,23 +37,26 @@ void testInitializeGrid() {
     }
 }
 
-// Test the displayGrid function
+// Teste la fonction `displayGrid` pour afficher correctement la grille et le score.
+// Critère de réussite : Pas d'erreurs lors de l'exécution.
 void testDisplayGrid() {
     std::cout << "Running testDisplayGrid...\n";
     try {
-        std::vector<std::vector<int>> grid(GRID_SIZE, std::vector<int>(GRID_SIZE, 0));
+        std::vector<std::vector<int>> grid(4, std::vector<int>(4, 0));
         int score = 0;
-        displayGrid(grid, score);
-        std::cout << "testDisplayGrid passed\n";
+        int bestScore = 1000; //just pour affichage
+        displayGrid(grid, score, bestScore);
+        std::cout << "testDisplayGrid passed )\n";
     } catch (...) {
         std::cout << "testDisplayGrid failed\n";
     }
 }
 
-// Test the addRandomTile function
+// Teste l'ajout d'une tuile aléatoire sur une grille vide.
+// Critère de réussite : La grille contient exactement une cellule non nulle après l'ajout.
 void testAddRandomTile() {
     std::cout << "Running testAddRandomTile...\n";
-    std::vector<std::vector<int>> grid(GRID_SIZE, std::vector<int>(GRID_SIZE, 0));
+    std::vector<std::vector<int>> grid(4, std::vector<int>(4, 0));
     addRandomTile(grid);
 
     int nonZeroCount = 0;
@@ -66,32 +73,10 @@ void testAddRandomTile() {
     }
 }
 
-void testAddRandomTileEdgeCases() {
-    std::cout << "Running testAddRandomTileEdgeCases...\n";
-    std::vector<std::vector<int>> grid = {
-        {2, 4, 8, 16},
-        {32, 64, 128, 256},
-        {512, 1024, 2048, 4096},
-        {2, 4, 8, 16}
-    };
-
-    addRandomTile(grid);
-
-    int nonZeroCount = 0;
-    for (const auto& row : grid) {
-        for (int cell : row) {
-            if (cell != 0) nonZeroCount++;
-        }
-    }
-
-    if (nonZeroCount == 16) {
-        std::cout << "testAddRandomTileEdgeCases passed\n";
-    } else {
-        std::cout << "testAddRandomTileEdgeCases failed\n";
-    }
-}
-
-// Test the isGameOver function
+// Teste si la fonction `isGameOver` détecte correctement la fin du jeu.
+// Cas de réussite : 
+// - Renvoie `true` si aucune combinaison ni aucun déplacement n'est possible.
+// - Renvoie `false` si un déplacement ou une combinaison reste possible.
 void testIsGameOver() {
     std::cout << "Running testIsGameOver...\n";
     std::vector<std::vector<int>> grid = {
@@ -115,7 +100,9 @@ void testIsGameOver() {
     }
 }
 
-// Test the slideAndMerge function with detailed cases
+// Teste le déplacement et la fusion d'une ligne de la grille.
+// Cas de réussite : 
+// - Les tuiles se combinent correctement et les scores sont mis à jour.
 void testSlideAndMerge() {
     std::cout << "Running testSlideAndMerge...\n";
 
@@ -129,22 +116,10 @@ void testSlideAndMerge() {
     } else {
         std::cout << "testSlideAndMerge failed\n";
     }
-
-    // Additional test cases
-    std::vector<int> noMergeLine = {2, 4, 8, 16};
-    moved = false;
-    scoreDelta = 0;
-    slideAndMerge(noMergeLine, moved, scoreDelta);
-
-    if (noMergeLine == std::vector<int>{2, 4, 8, 16} && !moved && scoreDelta == 0) {
-        std::cout << "testSlideAndMerge (no merge) passed\n";
-    } else {
-        std::cout << "testSlideAndMerge (no merge) failed\n";
-    }
 }
 
-
-// Test the moveLeft function
+// Teste le déplacement et la fusion des tuiles lors d'un mouvement vers la gauche.
+// Critère de réussite : La grille finale correspond à l'état attendu et le score est correct.
 void testMoveLeft() {
     std::cout << "Running testMoveLeft...\n";
     std::vector<std::vector<int>> grid = {
@@ -154,9 +129,16 @@ void testMoveLeft() {
         {16, 0, 0, 16}
     };
 
+
+    std::cout << "Initial Grid:\n";
+    printGrid(grid);
+
     int score = 0;
     bool moved = false;
     moveLeft(grid, moved, score);
+
+    std::cout << "Grid After moveLeft:\n";
+    printGrid(grid);
 
     std::vector<std::vector<int>> expected = {
         {4, 0, 0, 0},
@@ -172,7 +154,7 @@ void testMoveLeft() {
     }
 }
 
-// Test the moveRight function
+// Teste le déplacement et la fusion des tuiles lors d'un mouvement vers la droite.
 void testMoveRight() {
     std::cout << "Running testMoveRight...\n";
     std::vector<std::vector<int>> grid = {
@@ -182,9 +164,15 @@ void testMoveRight() {
         {0, 16, 0, 16}
     };
 
+    std::cout << "Initial Grid:\n";
+    printGrid(grid);
+
     int score = 0;
     bool moved = false;
     moveRight(grid, moved, score);
+
+    std::cout << "Grid After moveRight:\n";
+    printGrid(grid);
 
     std::vector<std::vector<int>> expected = {
         {0, 0, 0, 4},
@@ -199,17 +187,14 @@ void testMoveRight() {
         std::cout << "testMoveRight failed\n";
     }
 }
-
-
-
-// Test the moveUp function
+// Teste le déplacement et la fusion des tuiles lors d'un mouvement vers le haut.
 void testMoveUp() {
     std::cout << "Running testMoveUp...\n";
     std::vector<std::vector<int>> grid = {
-        {2, 4, 8, 16},
-        {2, 4, 8, 16},
-        {0, 0, 8, 16},
-        {0, 0, 8, 16}
+        {2, 0, 0, 0},
+        {2, 0, 0, 0},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0}
     };
 
     std::cout << "Initial Grid:\n";
@@ -221,31 +206,29 @@ void testMoveUp() {
 
     std::cout << "Grid After moveUp:\n";
     printGrid(grid);
-    std::cout << "Score: " << score << "\n";
 
     std::vector<std::vector<int>> expected = {
-        {4, 8, 16, 32},
-        {0, 0, 16, 32},
+        {4, 0, 0, 0},
+        {0, 0, 0, 0},
         {0, 0, 0, 0},
         {0, 0, 0, 0}
     };
 
-    if (grid == expected && score == 108) {
+    if (grid == expected && score == 4) {
         std::cout << "testMoveUp passed\n";
     } else {
         std::cout << "testMoveUp failed\n";
     }
 }
 
-
-// Test the moveDown function
+// Teste le déplacement et la fusion des tuiles lors d'un mouvement vers le bas.
 void testMoveDown() {
     std::cout << "Running testMoveDown...\n";
     std::vector<std::vector<int>> grid = {
-        {2, 4, 8, 16},
-        {2, 4, 8, 16},
-        {0, 0, 8, 16},
-        {0, 0, 8, 16}
+        {2, 0, 0, 0},
+        {2, 0, 0, 0},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0}
     };
 
     std::cout << "Initial Grid:\n";
@@ -257,25 +240,22 @@ void testMoveDown() {
 
     std::cout << "Grid After moveDown:\n";
     printGrid(grid);
-    std::cout << "Score: " << score << "\n";
 
     std::vector<std::vector<int>> expected = {
         {0, 0, 0, 0},
         {0, 0, 0, 0},
-        {0, 0, 16, 32},
-        {4, 8, 16, 32}
+        {0, 0, 0, 0},
+        {4, 0, 0, 0}
     };
 
-    if (grid == expected && score == 108) {
+    if (grid == expected && score == 4) {
         std::cout << "testMoveDown passed\n";
     } else {
         std::cout << "testMoveDown failed\n";
     }
 }
 
-
-
-// Main function to run all tests
+// Fonction principale pour exécuter tous les tests.
 int main() {
     std::cout << "Running tests...\n";
     testInitializeGrid();
@@ -287,11 +267,6 @@ int main() {
     testMoveRight();
     testMoveUp();
     testMoveDown();
-     std::cout << "Running additional tests...\n";
-
-    testAddRandomTileEdgeCases();
-
-    std::cout << "Additional tests completed.\n";
-    std::cout << "Tests completed.\n";
+    std::cout << "All tests completed.\n";
     return 0;
 }

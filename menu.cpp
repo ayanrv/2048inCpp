@@ -1,20 +1,20 @@
 #include "menu.hpp"
 #include <iostream>
 #include <algorithm>
-#include <fstream> // For file handling
+#include <fstream> 
 
-// Function to save the best score to a file in a specific folder
+// fonction pour enregistrer le meilleur score dans un fichier specifique
 void saveBestScore(int bestScore) {
-    std::ofstream file("data/best_score.txt"); // File path includes "data" folder
+    std::ofstream file("data/best_score.txt"); // Le chemin du fichier inclut le dossier "data"
     if (file.is_open()) {
         file << bestScore;
         file.close();
     }
 }
 
-// Function to load the best score from a file in a specific folder
+//Fonction pour charger le meilleur score à partir d’un fichier situé dans un dossier spécifique
 int loadBestScore() {
-    std::ifstream file("data/best_score.txt"); // File path includes "data" folder
+    std::ifstream file("data/best_score.txt"); // Le chemin du fichier inclut le dossier "data"
     int bestScore = 0;
     if (file.is_open()) {
         file >> bestScore;
@@ -23,7 +23,7 @@ int loadBestScore() {
     return bestScore;
 }
 
-
+//Fonction pour afficher le menu principal et permettre à l'utilisateur de choisir les paramètres du jeu
 void showMenu(bool &timedMode, int &timeLimit, int &gridSize) {
     while (true) {
         std::cout << "\n--- 2048 Game Menu ---\n";
@@ -38,7 +38,7 @@ void showMenu(bool &timedMode, int &timeLimit, int &gridSize) {
 
         switch (choice) {
             case 1:
-                return;  // Start the game
+                return;  // commence le jeu
             case 2:
                 std::cout << "1. Classic Mode\n";
                 std::cout << "2. Timed Mode\n";
@@ -50,7 +50,7 @@ void showMenu(bool &timedMode, int &timeLimit, int &gridSize) {
                     timedMode = true;
                     std::cout << "Enter time limit (in seconds): ";
                     std::cin >> timeLimit;
-                    timeLimit = std::max(timeLimit, 10);  // Minimum time allowed
+                    timeLimit = std::max(timeLimit, 10);  // temps minimun autorisé
                 } else {
                     timedMode = false;
                 }
@@ -64,7 +64,7 @@ void showMenu(bool &timedMode, int &timeLimit, int &gridSize) {
                 }
                 break;
             case 4:
-                exit(0);  // Quit the game
+                exit(0);  // arreter/quitter le jeu
             default:
                 std::cout << "Invalid input! Please try again.\n";
         }

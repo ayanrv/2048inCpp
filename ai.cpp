@@ -5,127 +5,127 @@
 #include <climits>
 
 /////////////////////////////////////////////////////////////////////////////////
-// Function: evaluateGrid
-// Description: Evaluates the current game grid using a weighted heuristic that 
-//              considers score, empty tiles, monotonicity, and merge potential.
-// Parameters:
-//   - grid: The current state of the game grid as a 2D vector of integers.
-// Returns: An integer representing the evaluation score of the grid.
+// Fonction: evaluateGrid()
+// Description: Évalue la grille actuelle du jeu en utilisant une heuristique pondérée qui
+//              prend en compte le score, les tuiles vides, la monotonie et le potentiel de fusion.
+//@param:
+//   - grid: l'etat actuel du plateau de jeu sous forme de vecteur 2d 
+// @returns: Un entier représentant le score d'évaluation de la grille.
 /////////////////////////////////////////////////////////////////////////////////
 int evaluateGrid(const std::vector<std::vector<int>>& grid) {
-    int emptyTiles = 0;      // Count of empty tiles in the grid
-    int score = 0;           // Total sum of all tile values (game score)
-    int monotonicity = 0;    // Tracks the smoothness/order of tiles
-    int mergePotential = 0;  // Tracks mergeable tile pairs
-
-    // Traverse the entire grid to calculate evaluation components
+    int emptyTiles = 0;      // nombre de tuile nulles
+    int score = 0;           // somme totale des valeurs des tuiles (score du jeu)
+    int monotonicity = 0;    // suivi de la regularité/ordre des tuiles
+    int mergePotential = 0;  // suivi des tuiles fusionnables
+    
+    //parcourt tout le plateau pour calculer lescomposants de l'evaluation
     for (int i = 0; i < grid.size(); ++i) {
         for (int j = 0; j < grid[i].size(); ++j) {
-            if (grid[i][j] == 0) emptyTiles++;  // Count empty tiles
-            score += grid[i][j];               // Add tile value to total score
+            if (grid[i][j] == 0) emptyTiles++;  // Count les tuiles nulles
+            score += grid[i][j];               // ajoute la valeur de la tuile au score
         }
     }
 
-    // Calculate monotonicity for both rows and columns
+    // Calcule monotonie des lignes et des colonnes
     for (int i = 0; i < grid.size(); ++i) {
         for (int j = 0; j < grid[i].size() - 1; ++j) {
-            // Row-wise monotonicity check (left to right)
+            // verification de la monotonie sur les lignes
             if (grid[i][j] >= grid[i][j + 1]) monotonicity++;
             
-            // Column-wise monotonicity check (top to bottom)
+            // verification de la monotonie des colonnes
             if (grid[j][i] >= grid[j + 1][i]) monotonicity++;
         }
     }
 
-    // Count adjacent merge potential for rows and columns
+   // Comptage du potentiel de fusion adjacent pour les lignes et les colonnes
     for (int i = 0; i < grid.size(); ++i) {
         for (int j = 0; j < grid[i].size() - 1; ++j) {
-            // Check horizontal merges (left to right)
+            // Vérification des fusions horizontales (de gauche à droite)
             if (grid[i][j] == grid[i][j + 1]) mergePotential++;
             
-            // Check vertical merges (top to bottom)
+            // Vérification des fusions verticales (de haut en bas)
             if (grid[j][i] == grid[j + 1][i]) mergePotential++;
         }
     }
 
-    // Return the weighted evaluation score
-    // Weights:
-    // - Empty tiles (200): Keeps more available moves
-    // - Monotonicity (50): Keeps tiles ordered
-    // - Merge Potential (100): Encourages merges
+    // Retourne le score d'évaluation pondéré
+    // Poids :
+    // - Tuiles vides (200) : Garde plus de mouvements disponibles
+    // - Monotonie (50) : Garde les tuiles ordonnées
+    // - Potentiel de fusion (100) : Encourage les fusions
     return score + emptyTiles * 200 + monotonicity * 50 + mergePotential * 100;
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-// Function: getBestMove
-// Description: Determines the best move using a three-step lookahead by 
-//              evaluating all possible moves and selecting the most optimal path.
-// Parameters:
-//   - grid: The current game grid as a 2D vector of integers.
-//   - currentScore: The current game score.
-// Returns: A string representing the best move ("Up", "Down", "Left", "Right").
+// Fonction : getBestMove
+// Description : Détermine le meilleur mouvement en utilisant une prévision à trois niveaux 
+//              en évaluant tous les mouvements possibles et en sélectionnant le chemin le plus optimal.
+// @param :
+//   - grid : La grille actuelle du jeu sous forme de vecteur 2D d'entiers.
+//   - currentScore : Le score actuel du jeu.
+// @return : Une chaîne de caractères représentant le meilleur mouvement ("Up", "Down", "Left", "Right").
 /////////////////////////////////////////////////////////////////////////////////
 std::string getBestMove(const std::vector<std::vector<int>>& grid, int currentScore) {
-    int maxEvaluation = INT_MIN;  // Store the best evaluation score found
-    std::string bestMove = "None";  // Track the best move based on evaluation
+    int maxEvaluation = INT_MIN;  // Stocke le meilleur score d'évaluation trouvé
+    std::string bestMove = "None";  // Suivi du meilleur mouvement basé sur l'évaluation
 
-    // Temporary grids for simulating moves at different depths
+    // Grilles temporaires pour simuler les mouvements à différents niveaux
     std::vector<std::vector<int>> tempGrid, futureGrid, thirdGrid;
-    int score, futureScore, thirdScore;  // Track scores after simulated moves
-    bool moved, futureMoved, thirdMoved;  // Track whether a move was successful
+    int score, futureScore, thirdScore;  // Suivi des scores après les mouvements simulés
+    bool moved, futureMoved, thirdMoved;  // Suivi si un mouvement a réussi
 
-    // First-level move evaluation
+    // Évaluation du premier niveau de mouvement
     for (int move = 0; move < 4; ++move) {
-        tempGrid = grid;  // Reset the grid to the original state
+        tempGrid = grid;  // Réinitialise la grille à l'état original
         score = currentScore;
         moved = false;
 
-        // Simulate the first move
+        // Simulation du premier mouvement
         switch (move) {
-            case 0: moveUp(tempGrid, moved, score); break;      // Simulate Up
-            case 1: moveDown(tempGrid, moved, score); break;    // Simulate Down
-            case 2: moveLeft(tempGrid, moved, score); break;    // Simulate Left
-            case 3: moveRight(tempGrid, moved, score); break;   // Simulate Right
+            case 0: moveUp(tempGrid, moved, score); break;      // Simule "Haut"
+            case 1: moveDown(tempGrid, moved, score); break;    // Simule "Bas"
+            case 2: moveLeft(tempGrid, moved, score); break;    // Simule "Gauche"
+            case 3: moveRight(tempGrid, moved, score); break;   // Simule "Droite"
         }
 
-        if (!moved) continue;  // Skip move if no tiles were moved
+        if (!moved) continue;  // Passe au mouvement suivant si aucune tuile n'a bougé
 
-        // Second-level move evaluation
+        // Évaluation du deuxième niveau de mouvement
         for (int nextMove = 0; nextMove < 4; ++nextMove) {
-            futureGrid = tempGrid;  // Reset grid after first move
-            futureScore = score;    // Reset score after first move
+            futureGrid = tempGrid;  // Réinitialise la grille après le premier mouvement
+            futureScore = score;    // Réinitialise le score après le premier mouvement
             futureMoved = false;
 
-            // Simulate the second move
+            // Simulation du deuxième mouvement
             switch (nextMove) {
-                case 0: moveUp(futureGrid, futureMoved, futureScore); break;   // Simulate Up
-                case 1: moveDown(futureGrid, futureMoved, futureScore); break; // Simulate Down
-                case 2: moveLeft(futureGrid, futureMoved, futureScore); break; // Simulate Left
-                case 3: moveRight(futureGrid, futureMoved, futureScore); break;// Simulate Right
+                case 0: moveUp(futureGrid, futureMoved, futureScore); break;   // Simule "Haut"
+                case 1: moveDown(futureGrid, futureMoved, futureScore); break; // Simule "Bas"
+                case 2: moveLeft(futureGrid, futureMoved, futureScore); break; // Simule "Gauche"
+                case 3: moveRight(futureGrid, futureMoved, futureScore); break;// Simule "Droite"
             }
 
-            if (!futureMoved) continue;  // Skip if no tiles moved in second move
+            if (!futureMoved) continue;  // Passe si aucune tuile n'a bougé dans le deuxième mouvement
 
-            // Third-level move evaluation
+            // Évaluation du troisième niveau de mouvement
             for (int lastMove = 0; lastMove < 4; ++lastMove) {
-                thirdGrid = futureGrid;  // Reset grid after second move
-                thirdScore = futureScore;  // Reset score after second move
+                thirdGrid = futureGrid;  // Réinitialise la grille après le deuxième mouvement
+                thirdScore = futureScore;  // Réinitialise le score après le deuxième mouvement
                 thirdMoved = false;
 
-                // Simulate the third move
+                // Simulation du troisième mouvement
                 switch (lastMove) {
-                    case 0: moveUp(thirdGrid, thirdMoved, thirdScore); break;   // Simulate Up
-                    case 1: moveDown(thirdGrid, thirdMoved, thirdScore); break; // Simulate Down
-                    case 2: moveLeft(thirdGrid, thirdMoved, thirdScore); break; // Simulate Left
-                    case 3: moveRight(thirdGrid, thirdMoved, thirdScore); break;// Simulate Right
+                    case 0: moveUp(thirdGrid, thirdMoved, thirdScore); break;   // Simule "Haut"
+                    case 1: moveDown(thirdGrid, thirdMoved, thirdScore); break; // Simule "Bas"
+                    case 2: moveLeft(thirdGrid, thirdMoved, thirdScore); break; // Simule "Gauche"
+                    case 3: moveRight(thirdGrid, thirdMoved, thirdScore); break;// Simule "Droite"
                 }
 
-                if (!thirdMoved) continue;  // Skip if no tiles moved in third move
+                if (!thirdMoved) continue;  // Passe si aucune tuile n'a bougé dans le troisième mouvement
 
-                // Evaluate the grid after three moves
+                // Évalue la grille après trois mouvements
                 int evaluation = evaluateGrid(thirdGrid);
 
-                // Update the best move if this path is better
+                // Met à jour le meilleur mouvement si ce chemin est meilleur
                 if (evaluation > maxEvaluation) {
                     maxEvaluation = evaluation;
                     switch (move) {
@@ -139,6 +139,6 @@ std::string getBestMove(const std::vector<std::vector<int>>& grid, int currentSc
         }
     }
 
-    // Return the best evaluated move
+    // Retourne le meilleur mouvement évalué
     return bestMove;
 }

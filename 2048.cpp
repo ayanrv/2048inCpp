@@ -8,46 +8,47 @@
 #include <ctime>
 #include <vector>
 
-// Main function to run the game
+// Fonction principale pour exécuter le jeu 2048.
+// Initialise les paramètres de la grille, les modes de jeu, le score et les entrées utilisateur.
 int main() {
-    int gridSize = 4;     // Default grid size
-    int score = 0; // Initialize the game score
-    int bestScore = loadBestScore(); // Load the best score from the file
-    int input; // Use int instead of char for user input
-    bool undoAvailable = false; // Track if undo is available
-    int prevScore = 0;      // Store the previous score
+    int gridSize = 4;     // plateau par default
+    int score = 0; // Initialise le score du jeu
+    int bestScore = loadBestScore(); // charge le meilleur score du fichier
+    int input; // utilise int au lieu de char pour l'input du joueur
+    bool undoAvailable = false; // regarde si undo est possible
+    int prevScore = 0;      // Stock le score precedent 
     std::string currentHint = "";
 
-    // Before initializing the grid
+    // avant d'initialiser le plateau
     bool timedMode = false;
-    int timeLimit = 120;  // Default time limit for timed mode
+    int timeLimit = 120;  //limite de temps par default
 
-     // Call the menu to set gridSize, timedMode, and timeLimit
+     //appele le menu pour définir la taille de la grille, le mode chronométré et la limite de temps
     showMenu(timedMode, timeLimit, gridSize);
 
-    // Initialize the grid dynamically based on gridSize
-    std::vector<std::vector<int>> grid(gridSize, std::vector<int>(gridSize, 0)); // Current grid
-    std::vector<std::vector<int>> prevGrid(gridSize, std::vector<int>(gridSize, 0)); // Previous grid
+    // Initialise la grille de manière dynamique en fonction de gridSize
+    std::vector<std::vector<int>> grid(gridSize, std::vector<int>(gridSize, 0)); // plateau actuel 
+    std::vector<std::vector<int>> prevGrid(gridSize, std::vector<int>(gridSize, 0)); // plateau precedent
 
-    std::srand(std::time(0)); // Seed random number generator for random tile placement
+    std::srand(std::time(0)); // Générateur de nombres aléatoires pour le placement aléatoire de tuiles
     
-    // Initialize ncurses screen
+    // initialise l'ecran ncurses
     initscr();
     noecho();
     cbreak();
-    keypad(stdscr, TRUE); // Enable arrow key input
+    keypad(stdscr, TRUE); // Active la saisie à l'aide des touches fléchées
 
-    initializeColors(); // Initialize color pairs for the game
-    initializeGrid(grid); // Add two random tiles to start the game
+    initializeColors(); // initialise les paires de couleur pour le jeu 
+    initializeGrid(grid); // rajoute deux tuiles aleatoire pour commencer le jeu
 
     auto startTime = std::chrono::steady_clock::now();
 
-    // Main game loop
+    // Boucle de jeu principale
     while (true) {
-        clear(); // Clear the screen to prepare for drawing the grid
-        displayGrid(grid, score, bestScore); // Display the grid, score, and best score
+        clear(); // efface l'ecran pour preparer le prochain affichage du plateau 
+        displayGrid(grid, score, bestScore); //affiche l'ecran, le score, et le meilleur score  
 
-        // Check timer only if timed mode is enabled
+        // Vérifiez le chronometre uniquement si le mode chronométré est activé
         if (timedMode) {
             auto now = std::chrono::steady_clock::now();
             int elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - startTime).count();
@@ -62,39 +63,39 @@ int main() {
             }
         }
 
-        // Check if the game is over
+        // regarde si le jeu est fini
         if (isGameOver(grid)) {
-            mvprintw(gridSize * 2 + 5, 0, "Game Over! No more valid moves!"); // Game over message
+            mvprintw(gridSize * 2 + 5, 0, "Game Over! No more valid moves!"); // affiche game over
             mvprintw(gridSize * 2 + 6, 0, "Press any key to exit...");
-            refresh(); // Refresh the screen to show game-over messages
-            getch(); // Wait for user input to acknowledge the game over
-            break; // Exit the main game loop
+            refresh(); // Actualisez l'écran pour afficher le message de game over
+            getch(); // Attendez que l'utilisateur saisisse la touche pour confirmer la fin du jeu
+            break; // Quitte la boucle de jeu principale
         }
 
-        // Show hint if available
+        // montre indice si possible 
         if (!currentHint.empty()) {
             mvprintw(gridSize * 2 + 9, 0, "Hint: %s", currentHint.c_str());
         }
 
-        // Show instructions for player input
+        // montre les instructions pour les input du joueur
         mvprintw(gridSize * 2 + 2, 0, "Press U to Undo, H for Hint, Arrow Keys/WASD to move, Q to Quit.");
         refresh();
-        input = getch(); // Get user input
+        input = getch(); // prend le input du sujet
 
-        bool validMove = false; // Flag to check if the input was valid
-        bool moved = false; // Flag to check if the grid changed
+        bool validMove = false; //Drapeau pour vérifier si l'entrée est valide
+        bool moved = false; // drapeau pour voir si le plateau a changé 
 
-        // Save the current state BEFORE making any move
+        // sauvegarde l'etat actuel avant de faire des changement/mouvement
         if (input == 'W' || input == 'w' || input == KEY_UP ||
             input == 'A' || input == 'a' || input == KEY_LEFT ||
             input == 'S' || input == 's' || input == KEY_DOWN ||
             input == 'D' || input == 'd' || input == KEY_RIGHT) {
-            prevGrid = grid; // Save the current grid state
-            prevScore = score; // Save the current score
-            undoAvailable = true; // Undo becomes available after saving
+            prevGrid = grid; // Sauvegarde le plateau
+            prevScore = score; // Sauvegarde le score
+            undoAvailable = true; // Undo devient possible apres la sauvegarde
         }
 
-        // Handle user input and perform corresponding moves
+        // gere les entrees des utilisateurs et effectue les mouvements
         switch (input) {
             case 'W': case 'w': case KEY_UP:
                 validMove = moveUp(grid, moved, score); break; // Move up
@@ -104,42 +105,42 @@ int main() {
                 validMove = moveDown(grid, moved, score); break; // Move down
             case 'D': case 'd': case KEY_RIGHT:
                 validMove = moveRight(grid, moved, score); break; // Move right
-            case 'U': case 'u': // Handle Undo
+            case 'U': case 'u': // Undo
                 if (undoAvailable) {
-                    grid = prevGrid; // Revert grid to previous state
-                    score = prevScore; // Revert score to previous state
-                    undoAvailable = false; // Undo is now unavailable
+                    grid = prevGrid; // remets le plateau a son etat precedent 
+                    score = prevScore; // remets le score a son etat precedent 
+                    undoAvailable = false; // Undo est possible
                 } 
                 refresh();
-                continue; // Skip the rest of the loop after undo
-            case 'H': case 'h': // Handle Hint
+                continue; // ignore le reste de la boucle apres undo 
+            case 'H': case 'h': // pour l'indice 
                 currentHint = getBestMove(grid, score);
                 if (currentHint == "None") {
                     currentHint = "No valid move found.";
                 }
-                continue; // Skip the rest of the loop after showing the hint
+                continue; // Passe le reste de la boucle après avoir montré l'indice
             case 'Q': case 'q':
-                endwin(); // End ncurses mode
+                endwin(); // arrete le mode ncurses
                 return 0;
             default:
                 mvprintw(gridSize * 2 + 7, 0, "Invalid input. Use Arrow Keys or WASD.");
                 refresh();
-                continue; // Skip further processing and wait for another input
+                continue; // ignore le reste et attends un autre input 
         }
 
-        // If the move was valid and the grid changed, add a new random tile
+        // si le mouvement etait possible et que le plateau a changé, rajoute une tuile aleatoire
         if (validMove && moved) {
-            addRandomTile(grid); // Add a new random tile after saving the state
-            currentHint = "";  // Clear hint after a valid move
+            addRandomTile(grid); // ajoute une nouvelle tuile aleatoire apres avoir sauvegarder l'etat actuel
+            currentHint = "";  // efface l'indice apres un mouvement validé
         }
     }
 
-     // Update the best score if the current score is higher
+     // mis à jour du bestscore si le score est plus grand 
     if (score > bestScore) {
         bestScore = score;
-        saveBestScore(bestScore); // Save the new best score to the file
+        saveBestScore(bestScore); //ajoute le nouveau meilleur score au fichier
     }
 
-    endwin(); // End ncurses mode and restore the terminal
+    endwin(); // arrete le mode ncurses et reinstaure le terminal
     return 0;
 }

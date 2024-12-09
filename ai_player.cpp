@@ -1,91 +1,81 @@
-#include "modele.hpp"   // Game logic functions
-#include "ai.hpp"       // AI decision-making
+#include "modele.hpp"   // Fonctions principales du jeu
+#include "ai.hpp"       // Logique d'IA pour les décisions
 #include <vector>
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
-#include <curses.h>     // For visual display
+#include <curses.h>     // Pour l'affichage dans le terminal
 
-// Function declaration for the AI
-std::string getBestMove(const std::vector<std::vector<int>>& grid, int currentScore);
-int evaluateGrid(const std::vector<std::vector<int>>& grid);
-
-// Main function to run the AI-powered game
+// Fonction principale pour exécuter le jeu contrôlé par l'IA
 int main() {
-    int gridSize = 4;         // Game grid size
-    int score = 0;            // Current game score
-    int bestScore = loadBestScore(); // Load the best score from the file
-    bool moved;               // Tracks if the move was successful
+    int gridSize = 4;           // Taille de la grille (4x4 par défaut)
+    int score = 0;              // Score actuel du jeu
+    int bestScore = loadBestScore(); // Charger le meilleur score enregistré
+    bool moved;                 // Indique si un mouvement a été effectué
 
-    // Initialize the game grid
+    // Initialisation de la grille du jeu
     std::vector<std::vector<int>> grid(gridSize, std::vector<int>(gridSize, 0));
+    std::srand(std::time(0));   // Graine pour les nombres aléatoires
+    initscr();                  // Démarrer le mode ncurses
+    noecho();                   // Désactiver l'affichage des entrées utilisateur
+    cbreak();                   // Désactiver le buffering par ligne
+    keypad(stdscr, TRUE);       // Activer les entrées clavier spéciales
+    initializeColors();         // Initialiser les couleurs pour l'affichage
 
-    // Seed the random number generator
-    std::srand(std::time(0));
+    initializeGrid(grid);       // Ajouter deux tuiles initiales dans la grille
 
-    // Initialize ncurses screen
-    initscr();             // Start ncurses mode
-    noecho();              // Disable echoing input
-    cbreak();              // Disable line buffering
-    keypad(stdscr, TRUE);  // Enable special key input
-    nodelay(stdscr, TRUE); // Non-blocking input
-    initializeColors();    // Initialize game colors
-
-    // Add two starting tiles
-    initializeGrid(grid);
-
-    // Run the AI game loop
+    // Boucle principale du jeu
     while (true) {
-        // Clear screen and display the current game state
-        clear();
-        displayGrid(grid, score, bestScore);  // Display the game grid
+        clear();                        // Effacer l'écran
+        displayGrid(grid, score, bestScore); // Afficher la grille actuelle
 
-        // Check if the game is over
+        // Vérifier si le jeu est terminé
         if (isGameOver(grid)) {
             mvprintw(gridSize * 2 + 5, 0, "Game Over! Final Score: %d", score);
             mvprintw(gridSize * 2 + 6, 0, "Press any key to exit...");
             refresh();
-            getch();  // Wait for key press before exiting
+            getch(); // Attendre une entrée de l'utilisateur avant de quitter
             break;
         }
 
-        // Check for user input to quit
-        int ch = getch();  // Non-blocking input
-        if (ch == 'q' || ch == 'Q') {
-            mvprintw(gridSize * 2 + 5, 0, "Quitting game... Goodbye!");
-            refresh();
-            napms(1000);  // Wait for 1 second before exiting
-            break;
-        }
-
-        // Get the best move from the AI
+        // Afficher le meilleur mouvement calculé par l'IA
         std::string bestMove = getBestMove(grid, score);
         mvprintw(gridSize * 2 + 7, 0, "AI's Best Move: %s", bestMove.c_str());
+        mvprintw(gridSize * 2 + 8, 0, "Press Q to quit...");
         refresh();
 
-        // Apply the best move based on AI's decision
+        // Gestion des entrées utilisateur pour quitter ou continuer
+        int ch = getch();
+        if (ch == 'Q' || ch == 'q') {
+            mvprintw(gridSize * 2 + 9, 0, "Quitting game...");
+            refresh();
+            break;
+        }
+
+        // Appliquer le meilleur mouvement choisi par l'IA
+        moved = false;
         if (bestMove == "Up") moveUp(grid, moved, score);
         else if (bestMove == "Down") moveDown(grid, moved, score);
         else if (bestMove == "Left") moveLeft(grid, moved, score);
         else if (bestMove == "Right") moveRight(grid, moved, score);
-        else {
-            mvprintw(gridSize * 2 + 8, 0, "No valid moves! Ending game.");
-            refresh();
-            getch();
-            break;
+
+        // Ajouter une tuile aléatoire si un mouvement valide a été effectué
+        if (moved) {
+            addRandomTile(grid);
         }
 
-        mvprintw(gridSize * 2 + 2, 0, "Press Q to Quit.");
-        refresh();
-
-        // Add a random tile after a valid move
-        if (moved) addRandomTile(grid);
-
-        // Pause for animation effect (adjust if needed)
-        napms(300);  // 300 ms delay for visibility
+        // Petite pause pour un effet d'animation
+        napms(300); // Pause de 300ms
     }
 
-    // End ncurses mode and restore terminal
-    endwin();
+    // Afficher la grille et le score final après la fin du jeu ou après avoir quitté
+    clear();
+    displayGrid(grid, score, bestScore);
+    mvprintw(gridSize * 2 + 5, 0, "Final Score: %d", score);
+    mvprintw(gridSize * 2 + 6, 0, "Game exited. Thanks for playing!");
+    refresh();
+    getch(); // Attendre une entrée de l'utilisateur avant de quitter
+
+    endwin(); // Quitter le mode ncurses
     return 0;
 }
